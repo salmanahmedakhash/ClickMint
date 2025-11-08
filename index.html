@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WatchEarn - দেখুন, রোজ আয় করুন!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+            },
+            colors: {
+              primary: '#60A5FA',
+              secondary: '#34D399',
+              accent: '#FBBF24',
+              background: '#0F172A',
+              surface: '#1E293B',
+              'surface-light': '#334155',
+              textPrimary: '#F1F5F9',
+              textSecondary: '#94A3B8',
+              premium: {
+                light: '#4F46E5',
+                dark: '#3730A3',
+              }
+            },
+            boxShadow: {
+                '3d': '0 4px 10px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2)',
+                '3d-hover': '0 6px 20px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { translateY(0px); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+       @keyframes popIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes barUp {
+        from { transform: scaleY(0); }
+        to { transform: scaleY(1); }
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .animate-popIn {
+        animation: popIn 0.4s ease-out forwards;
+      }
+      .animate-barUp {
+        transform-origin: bottom;
+        animation: barUp 1s ease-out forwards;
+      }
+       @keyframes draw-line {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+  }
+}
+</script>
+</head>
+  <body class="bg-background text-textPrimary">
+    <div id="root">
+       <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+            <p>অ্যাপটি লোড হচ্ছে...</p>
+        </div>
+    </div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

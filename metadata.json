@@ -1,0 +1,5 @@
+{
+  "name": "WatchEarn",
+  "description": "A web application where users can earn rewards by watching advertisements. It features a transparent earning system, quick withdrawal options, and robust fraud prevention measures.",
+  "requestFramePermissions": []
+}
