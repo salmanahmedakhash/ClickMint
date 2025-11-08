@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../App';
 import { View } from '../types';
 import LoadingSpinner from './LoadingSpinner';
-import { ArrowRightOnRectangleIcon, CalendarDaysIcon, PlayCircleIcon, UserGroupIcon, RocketLaunchIcon, WalletIcon } from './IconComponents';
+import { ArrowRightOnRectangleIcon, CalendarDaysIcon, GlobeAltIcon, UserGroupIcon, RocketLaunchIcon, WalletIcon, BanknotesIcon, FireIcon, BellIcon, BellSlashIcon } from './IconComponents';
 
 const colorClasses: { [key: string]: { bg: string, text: string } } = {
     blue: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
@@ -40,16 +40,23 @@ const Profile: React.FC = () => {
     if (!context || !context.currentUser) {
         return <div className="flex items-center justify-center h-full"><LoadingSpinner /></div>;
     }
-    const { currentUser, logout, setView } = context;
+    const { currentUser, logout, setView, updateUser } = context;
     const totalEarnings = currentUser.balance; 
+    
+    const handleNotificationToggle = async () => {
+        if (!context || !context.currentUser) return;
+        const newStatus = !currentUser.notificationsEnabled;
+        // The NotificationHandler component will react to this change.
+        await updateUser(currentUser.id, { notificationsEnabled: newStatus });
+    };
 
     return (
         <div className="p-4 animate-fadeIn">
             <div className="flex flex-col items-center text-center mb-8">
                 <div className="relative">
-                    <img src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.name || 'WU'}&backgroundColor=334155&textColor=f1f5f9`} alt="avatar" className="w-24 h-24 rounded-full mb-3 border-4 border-surface shadow-lg"/>
+                    <img src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.name || 'CM'}&backgroundColor=334155&textColor=f1f5f9`} alt="avatar" className="w-24 h-24 rounded-full mb-3 border-4 border-surface shadow-lg"/>
                 </div>
-                <h1 className="text-2xl font-bold text-textPrimary">{currentUser.name || 'WatchEarn User'}</h1>
+                <h1 className="text-2xl font-bold text-textPrimary">{currentUser.name || 'ClickMint User'}</h1>
                 <p className="text-textSecondary">{currentUser.email}</p>
                 <p className="text-xs text-textSecondary mt-1">সদস্য হয়েছেন: {new Date(currentUser.joinedDate).toLocaleDateString()}</p>
             </div>
@@ -57,13 +64,26 @@ const Profile: React.FC = () => {
             <div className="mb-8">
                  <h2 className="text-lg font-bold text-textPrimary mb-4">অ্যাকাউন্ট সারাংশ</h2>
                  <div className="grid grid-cols-2 gap-4">
-                     <StatCard icon={WalletIcon} label="বর্তমান ব্যালেন্স" value={`৳${totalEarnings.toFixed(2)}`} color="blue" />
+                     <StatCard icon={BanknotesIcon} label="বর্তমান ব্যালেন্স" value={`৳${totalEarnings.toFixed(2)}`} color="blue" />
                      <StatCard icon={CalendarDaysIcon} label="লগইন স্ট্রিক" value={`${currentUser.loginStreak} দিন`} color="green" />
-                     <StatCard icon={PlayCircleIcon} label="ভিডিও দেখা হয়েছে" value={currentUser.totalAdsWatched} color="red" />
-                     <StatCard icon={RocketLaunchIcon} label="মিশন আয়" value={`৳${currentUser.missionEarnings.toFixed(2)}`} color="yellow" />
+                     <StatCard icon={GlobeAltIcon} label="সাইট ভিজিট হয়েছে" value={currentUser.totalSitesVisited} color="red" />
+                     <StatCard icon={FireIcon} label="মিশন আয়" value={`৳${currentUser.missionEarnings.toFixed(2)}`} color="yellow" />
                      <StatCard icon={UserGroupIcon} label="রেফারেল আয়" value={`৳${currentUser.referrals.earnings.toFixed(2)}`} color="indigo" />
                      <StatCard icon={UserGroupIcon} label="বন্ধু যোগ দিয়েছে" value={currentUser.referrals.count} color="purple" />
                  </div>
+            </div>
+
+             <div className="mb-8">
+                <h2 className="text-lg font-bold text-textPrimary mb-4">সেটিংস</h2>
+                <div className="bg-surface p-4 rounded-lg shadow-sm flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                        {currentUser.notificationsEnabled ? <BellIcon className="w-6 h-6 text-textSecondary"/> : <BellSlashIcon className="w-6 h-6 text-textSecondary"/>}
+                        <span className="font-semibold text-textPrimary">পুশ নোটিফিকেশন</span>
+                    </div>
+                    <button onClick={handleNotificationToggle} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${currentUser.notificationsEnabled ? 'bg-primary' : 'bg-slate-600'}`}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${currentUser.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-3">

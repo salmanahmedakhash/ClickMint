@@ -8,10 +8,10 @@ import { FacebookIcon, YoutubeIcon, TwitterIcon } from './IconComponents';
 
 // Copied from App.tsx to be self-contained
 const initialGlobalMissions: Mission[] = [
-    { id: 'm1', type: 'watch', category: 'daily', title: 'Daily Starter', description: 'আজ 5টি ভিডিও দেখুন', reward: 5, goal: 5, progress: 0, completed: false },
-    { id: 'm2', type: 'watch', category: 'daily', title: 'Welcome Bonus', description: 'আপনার প্রথম ভিডিওটি দেখুন', reward: 10, goal: 1, progress: 0, completed: false },
-    { id: 's1', type: 'social', category: 'social', title: 'Follow on Facebook', description: 'আমাদের ফেসবুক পেজ ফলো করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: FacebookIcon, link: 'https://facebook.com' },
-    { id: 's2', type: 'social', category: 'social', title: 'Subscribe to YouTube', description: 'আমাদের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: YoutubeIcon, link: 'https://youtube.com' },
+    { id: 'm1', type: 'watch', category: 'daily', title: 'Daily Starter', description: 'আজ 5টি ওয়েবসাইট ভিজিট করুন', reward: 5, goal: 5, progress: 0, completed: false },
+    { id: 'm2', type: 'watch', category: 'daily', title: 'Welcome Bonus', description: 'আপনার প্রথম ওয়েবসাইটটি ভিজিট করুন', reward: 10, goal: 1, progress: 0, completed: false },
+    { id: 's1', type: 'social', category: 'social', title: 'Follow on Facebook', description: 'আমাদের ফেসবুক পেজ ফলো করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: FacebookIcon, link: 'https://www.facebook.com/profile.php?id=61583489671081' },
+    { id: 's2', type: 'social', category: 'social', title: 'Subscribe to YouTube', description: 'আমাদের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: YoutubeIcon, link: 'https://youtube.com/@clickmint_93?si=9n8g82KWq6HhxsM0' },
     { id: 's3', type: 'social', category: 'social', title: 'Follow on X', description: 'X (Twitter) এ আমাদের ফলো করুন', reward: 10, goal: 1, progress: 0, completed: false, icon: TwitterIcon, link: 'https://x.com' },
 ];
 
@@ -20,6 +20,7 @@ const Auth: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [referralCode, setReferralCode] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const context = useContext(UserContext);
@@ -40,7 +41,7 @@ const Auth: React.FC = () => {
                 const firebaseUser = userCredential.user;
 
                 const now = new Date().toISOString();
-                const referrerId = sessionStorage.getItem('referrerId');
+                const referrerId = referralCode.trim();
                 
                 const newUser: User = {
                     id: firebaseUser.uid,
@@ -49,12 +50,16 @@ const Auth: React.FC = () => {
                     balance: referrerId ? 5.00 : 0.00, // Welcome bonus if referred
                     lastLogin: now,
                     loginStreak: 1,
-                    totalAdsWatched: 0,
+                    totalSitesVisited: 0,
                     joinedDate: now,
                     missionEarnings: 0,
                     lastMissionReset: now,
                     referrals: { count: 0, earnings: 0, referredUsers: [] },
                     missions: JSON.parse(JSON.stringify(initialGlobalMissions)),
+                    watchedAdIdsToday: [],
+                    adCooldownEndTime: '',
+                    fcmTokens: [],
+                    notificationsEnabled: true,
                     ...(referrerId && { referredBy: referrerId }),
                 };
                 await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
@@ -95,9 +100,8 @@ const Auth: React.FC = () => {
                             status: 'completed',
                             description: `স্বাগতম বোনাস! বন্ধুর আমন্ত্রণে যোগ দিয়েছেন।`
                         });
+                        sessionStorage.setItem('showReferralBonus', 'true');
                     }
-                    sessionStorage.setItem('showReferralBonus', 'true');
-                    sessionStorage.removeItem('referrerId');
                 }
             }
         } catch (err: any) {
@@ -136,7 +140,7 @@ const Auth: React.FC = () => {
             <div className="text-center mb-10 animate-fadeIn">
                 <h1 className="text-3xl font-bold text-primary">{isLogin ? 'স্বাগতম!' : 'একাউন্ট তৈরি করুন'}</h1>
                 <p className="text-textSecondary mt-2">
-                    {isLogin ? 'আপনার ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।' : 'WatchEarn-এ যোগ দিন এবং উপার্জন শুরু করুন!'}
+                    {isLogin ? 'আপনার ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।' : 'ClickMint-এ যোগ দিন এবং উপার্জন শুরু করুন!'}
                 </p>
             </div>
             
@@ -167,8 +171,18 @@ const Auth: React.FC = () => {
                         placeholder="******" required
                     />
                 </div>
+                 {!isLogin && (
+                     <div className="animate-fadeIn" style={{ animationDelay: '500ms' }}>
+                        <label htmlFor="referral" className="block text-sm font-medium text-textPrimary mb-1">রেফারেল কোড (ঐচ্ছিক)</label>
+                        <input
+                            type="text" id="referral" value={referralCode} onChange={(e) => setReferralCode(e.target.value)}
+                            className="mt-1 block w-full px-4 py-3 bg-surface-light border border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-textPrimary"
+                            placeholder="বন্ধুর রেফারেল কোড দিন"
+                        />
+                    </div>
+                )}
                  {error && <p className="text-red-500 text-sm text-center animate-fadeIn">{error}</p>}
-                <div className="animate-fadeIn" style={{ animationDelay: isLogin ? '400ms' : '500ms' }}>
+                <div className="animate-fadeIn" style={{ animationDelay: isLogin ? '400ms' : '600ms' }}>
                     <button
                         type="submit" disabled={loading}
                         className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-3d text-sm font-medium text-white bg-primary hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-slate-500 disabled:cursor-not-allowed transition-all"

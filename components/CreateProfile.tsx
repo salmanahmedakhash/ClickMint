@@ -43,7 +43,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({ initialMissions }) => {
             balance: 0.00,
             lastLogin: now,
             loginStreak: 1,
-            totalAdsWatched: 0,
+            totalSitesVisited: 0,
             joinedDate: now,
             missionEarnings: 0,
             lastMissionReset: now,

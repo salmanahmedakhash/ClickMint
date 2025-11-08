@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { View } from '../types';
-import { HomeIcon, WalletIcon, ClipboardDocumentListIcon, RocketLaunchIcon, UserCircleIcon } from './IconComponents';
+import { HomeIcon, WalletIcon, ClipboardDocumentListIcon, RocketLaunchIcon, UserCircleIcon, FireIcon, BanknotesIcon } from './IconComponents';
 import { UserContext } from '../App';
 
 interface BottomNavProps {
@@ -10,8 +10,8 @@ interface BottomNavProps {
 
 const navItems = [
   { view: 'dashboard' as View, label: 'হোম', icon: HomeIcon },
-  { view: 'missions' as View, label: 'মিশন', icon: RocketLaunchIcon },
-  { view: 'withdraw' as View, label: 'উইথড্র', icon: WalletIcon },
+  { view: 'missions' as View, label: 'মিশন', icon: FireIcon },
+  { view: 'withdraw' as View, label: 'উইথড্র', icon: BanknotesIcon },
   { view: 'history' as View, label: 'হিস্ট্রি', icon: ClipboardDocumentListIcon },
   { view: 'profile' as View, label: 'প্রোফাইল', icon: UserCircleIcon },
 ];

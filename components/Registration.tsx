@@ -48,7 +48,7 @@ const Registration: React.FC = () => {
         balance: 0.00,
         lastLogin: now,
         loginStreak: 1,
-        totalAdsWatched: 0,
+        totalSitesVisited: 0,
         joinedDate: now,
         missionEarnings: 0,
         lastMissionReset: now,
@@ -71,7 +71,7 @@ const Registration: React.FC = () => {
     <div className="min-h-screen flex flex-col justify-center p-6 bg-background">
         <div className="text-center mb-10 animate-fadeIn" style={{ animationDelay: '100ms' }}>
             <h1 className="text-3xl font-bold text-primary">একাউন্ট তৈরি করুন</h1>
-            <p className="text-textSecondary mt-2">WatchEarn-এ যোগ দিন এবং উপার্জন শুরু করুন!</p>
+            <p className="text-textSecondary mt-2">ClickMint-এ যোগ দিন এবং উপার্জন শুরু করুন!</p>
         </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="animate-fadeIn" style={{ animationDelay: '200ms' }}>

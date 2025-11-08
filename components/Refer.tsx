@@ -46,11 +46,11 @@ const Refer: React.FC = () => {
     }
     
     const { currentUser } = context;
-    const referralLink = `${window.location.origin}${window.location.pathname}?ref=${currentUser.id}`;
-    const shareText = `ভিডিও দেখে আয় করুন! আমার রেফারেল লিঙ্ক ব্যবহার করে WatchEarn-এ যোগ দিন এবং ৳5 বোনাস পান। ${referralLink}`;
+    const referralCode = currentUser.id;
+    const shareText = `ওয়েবসাইট ভিজিট করে আয় করুন! আমার রেফারেল কোড ব্যবহার করে ClickMint-এ যোগ দিন এবং রেজিস্ট্রেশনের সময় এই কোডটি ব্যবহার করে ৳5 বোনাস পান: ${referralCode}`;
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(referralLink);
+        navigator.clipboard.writeText(referralCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -59,16 +59,16 @@ const Refer: React.FC = () => {
         <div className="p-4 animate-fadeIn">
             <div className="text-center mb-6">
                 <h1 className="text-3xl font-bold text-primary mb-2">বন্ধুকে আমন্ত্রণ করুন</h1>
-                <p className="text-textSecondary">প্রত্যেক সফল রেফারে আপনি আয় করবেন <span className="font-bold text-secondary">+ ৳5!</span> এবং আপনার বন্ধু পাবে <span className="font-bold text-secondary">৳5!</span></p>
+                <p className="text-textSecondary">আপনার বন্ধুকে রেফার কোড দিয়ে জয়েন করালে আপনি পাবেন <span className="font-bold text-secondary">+ ৳5!</span> এবং আপনার বন্ধু পাবে <span className="font-bold text-secondary">৳5!</span></p>
             </div>
 
             <ReferralStats count={currentUser.referrals.count} earnings={currentUser.referrals.earnings} />
 
             <div className="bg-surface p-6 rounded-2xl shadow-3d">
-                <p className="text-textSecondary text-center mb-2">আপনার রেফারেল লিঙ্ক</p>
-                <div className="relative flex items-center border-2 border-dashed border-slate-600 rounded-lg p-3 mb-4">
-                    <span className="text-sm font-semibold text-textPrimary tracking-wide flex-grow text-center truncate pr-10">
-                        {referralLink}
+                <p className="text-textSecondary text-center mb-2">আপনার রেফারেল কোড</p>
+                <div className="relative flex items-center justify-center border-2 border-dashed border-slate-600 rounded-lg p-3 mb-4">
+                    <span className="text-lg font-mono font-semibold text-textPrimary tracking-widest flex-grow text-center truncate pr-10">
+                        {referralCode}
                     </span>
                      <button onClick={handleCopy} className="absolute right-2 bg-surface-light p-2 rounded-md">
                         {copied ? <ClipboardDocumentCheckIcon className="w-5 h-5 text-secondary"/> : <ShareIcon className="w-5 h-5 text-textSecondary"/>}
@@ -79,9 +79,6 @@ const Refer: React.FC = () => {
                 <div className="flex justify-center space-x-4">
                     <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] text-white p-3 rounded-full shadow-lg transform hover:scale-110 transition-transform">
                         <WhatsAppIcon className="w-6 h-6"/>
-                    </a>
-                     <a href={`fb-messenger://share?link=${encodeURIComponent(referralLink)}&app_id=YOUR_FB_APP_ID`} className="bg-[#00B2FF] text-white p-3 rounded-full shadow-lg transform hover:scale-110 transition-transform">
-                        <MessengerIcon className="w-6 h-6"/>
                     </a>
                 </div>
             </div>

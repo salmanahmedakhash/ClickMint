@@ -1,5 +1,5 @@
 import React, { useState, useRef, TouchEvent, MouseEvent } from 'react';
-import { PlayIcon, ShieldCheckIcon, ExclamationTriangleIcon } from './IconComponents';
+import { CursorArrowRaysIcon, ShieldCheckIcon, ExclamationTriangleIcon } from './IconComponents';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -7,9 +7,9 @@ interface OnboardingProps {
 
 const cards = [
   {
-    icon: <PlayIcon className="w-20 h-20 text-primary" />,
-    headline: "দ্রুত আয়, প্রত্যেক ভিডিওতে টাকা।",
-    body: "৩০ সেকেন্ড ভিডিও দেখুন — মিনি রিওয়ার্ড পান।",
+    icon: <CursorArrowRaysIcon className="w-20 h-20 text-primary" />,
+    headline: "দ্রুত আয়, প্রত্যেক ভিজিটে টাকা।",
+    body: "ওয়েবসাইট ভিজিট করুন — রিওয়ার্ড পান।",
     buttonText: "শুরু করুন"
   },
   {

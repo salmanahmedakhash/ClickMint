@@ -2,48 +2,13 @@ import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../App';
 import { Ad, View } from '../types';
 import LoadingSpinner from './LoadingSpinner';
-import { WalletIcon, PlayCircleIcon, ClockIcon, GlobeAltIcon, UserGroupIcon, RocketLaunchIcon, ClipboardDocumentListIcon, CheckCircleIcon } from './IconComponents';
+import { WalletIcon, PlayCircleIcon, ClockIcon, CursorArrowRaysIcon, RocketLaunchIcon, ClipboardDocumentListIcon, CheckBadgeIcon, BanknotesIcon, FireIcon, GiftIcon } from './IconComponents';
 
 interface DashboardProps {
   ads: Ad[];
   onAdComplete: (ad: Ad) => void;
   setView: (view: View) => void;
 }
-
-const FullScreenAdView: React.FC<{ ad: Ad; onFinish: (ad: Ad) => void; }> = ({ ad, onFinish }) => {
-    const [completed, setCompleted] = useState(false);
-
-    useEffect(() => {
-        const adTimer = setTimeout(() => {
-            setCompleted(true);
-            setTimeout(() => {
-                onFinish(ad);
-            }, 2000);
-        }, ad.duration * 1000);
-
-        return () => clearTimeout(adTimer);
-    }, [ad, onFinish]);
-
-    return (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center animate-fadeIn">
-            {completed ? (
-                <div className="text-center animate-popIn text-white">
-                    <CheckCircleIcon className="w-24 h-24 text-secondary mx-auto mb-4" />
-                    <h2 className="text-3xl font-bold">অভিনন্দন!</h2>
-                    <p className="text-xl mt-2">আপনি পেয়েছেন ৳{ad.reward.toFixed(2)}</p>
-                </div>
-            ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                    {/* 👨‍💻 YOUR GOOGLE ADSENSE CODE HERE 👨‍💻 */}
-                    <div className="w-full h-full bg-black flex flex-col items-center justify-center text-center p-4">
-                        <span role="img" aria-label="coding emoji" className="text-5xl">👨‍💻</span>
-                        <p className="text-slate-400 mt-4">Google AdSense ভিডিও বিজ্ঞাপন এখানে প্রদর্শিত হবে...</p>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
 const EarningsChart: React.FC = () => {
     const dailyEarnings = [45, 60, 75, 50, 90, 80, 100]; // Mock data
@@ -97,8 +62,8 @@ const EarningsChart: React.FC = () => {
 const QuickActions: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
     const context = useContext(UserContext);
     const actions = [
-        { label: 'উইথড্র', icon: WalletIcon, view: 'withdraw' as View },
-        { label: 'মিশন', icon: RocketLaunchIcon, view: 'missions' as View },
+        { label: 'উইথড্র', icon: BanknotesIcon, view: 'withdraw' as View },
+        { label: 'মিশন', icon: FireIcon, view: 'missions' as View },
         { label: 'হিস্ট্রি', icon: ClipboardDocumentListIcon, view: 'history' as View },
     ];
 
@@ -121,12 +86,46 @@ const QuickActions: React.FC<{ setView: (view: View) => void }> = ({ setView }) 
     );
 }
 
+const CooldownTimer: React.FC<{ timeLeft: string }> = ({ timeLeft }) => (
+    <div className="bg-surface p-4 rounded-xl shadow-3d text-center mb-4 animate-fadeIn">
+        <h3 className="font-bold text-accent">কাজের বিরতি চলছে</h3>
+        <p className="text-textSecondary text-sm mt-1">পরবর্তী কাজ পাওয়া যাবে:</p>
+        <p className="text-2xl font-bold text-primary font-mono tracking-wider mt-2">{timeLeft}</p>
+    </div>
+);
+
+
 const Dashboard: React.FC<DashboardProps> = ({ ads, onAdComplete, setView }) => {
   const context = useContext(UserContext);
   const [visibleAdsCount, setVisibleAdsCount] = useState(10);
   const [processingAds, setProcessingAds] = useState<string[]>([]);
-  const [playingVideoAd, setPlayingVideoAd] = useState<Ad | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!context?.currentUser?.adCooldownEndTime) {
+      setTimeLeft(null);
+      return;
+    }
+
+    const cooldownEndTime = new Date(context.currentUser.adCooldownEndTime);
+
+    const timer = setInterval(() => {
+        const now = new Date();
+        const remaining = cooldownEndTime.getTime() - now.getTime();
+
+        if (remaining <= 0) {
+            clearInterval(timer);
+            setTimeLeft(null);
+        } else {
+            const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((remaining / 1000 / 60) % 60);
+            const seconds = Math.floor((remaining / 1000) % 60);
+            setTimeLeft(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+        }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [context?.currentUser?.adCooldownEndTime]);
 
   if (!context || !context.currentUser) {
     return <div className="flex items-center justify-center h-full"><LoadingSpinner /></div>;
@@ -138,34 +137,24 @@ const Dashboard: React.FC<DashboardProps> = ({ ads, onAdComplete, setView }) => 
 
     setProcessingAds(prev => [...prev, ad.id]);
 
-    if (ad.type === 'video') {
-        setPlayingVideoAd(ad);
-    } else if (ad.type === 'site') {
-      window.open('https://www.effectivegatecpm.com/m8r9c08qev?key=4d9177439fc72ffbc9b80fce4396e674', '_blank', 'noopener,noreferrer');
-      setTimeout(() => {
-        onAdComplete(ad);
-        setProcessingAds(prev => prev.filter(id => id !== ad.id));
-      }, ad.duration * 1000);
-    }
+    window.open('https://www.effectivegatecpm.com/m8r9c08qev?key=4d9177439fc72ffbc9b80fce4396e674', '_blank', 'noopener,noreferrer');
+    setTimeout(() => {
+      onAdComplete(ad);
+      setProcessingAds(prev => prev.filter(id => id !== ad.id));
+    }, ad.duration * 1000);
   };
+
+  const watchedAdIds = currentUser.watchedAdIdsToday || [];
+  const allAdsWatched = watchedAdIds.length >= ads.length;
+
 
   return (
     <div className="p-4 bg-background min-h-full">
-        {playingVideoAd && (
-            <FullScreenAdView 
-                ad={playingVideoAd} 
-                onFinish={(ad) => {
-                    onAdComplete(ad);
-                    setProcessingAds(prev => prev.filter(id => id !== ad.id));
-                    setPlayingVideoAd(null);
-                }}
-            />
-        )}
         <div className="flex items-center space-x-4 mb-6 animate-fadeIn">
-             <img src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.name || 'WU'}&backgroundColor=334155&textColor=f1f5f9`} alt="avatar" className="w-14 h-14 rounded-full border-2 border-surface-light"/>
+             <img src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.name || 'CM'}&backgroundColor=334155&textColor=f1f5f9`} alt="avatar" className="w-14 h-14 rounded-full border-2 border-surface-light"/>
             <div>
                 <p className="text-md text-textSecondary">আবারও স্বাগতম,</p>
-                <h1 className="text-2xl font-bold text-textPrimary -mt-1">{currentUser.name || 'WatchEarn User'}</h1>
+                <h1 className="text-2xl font-bold text-textPrimary -mt-1">{currentUser.name || 'ClickMint User'}</h1>
             </div>
         </div>
 
@@ -189,7 +178,7 @@ const Dashboard: React.FC<DashboardProps> = ({ ads, onAdComplete, setView }) => 
                 <h3 className="font-bold text-secondary">বন্ধুদের রেফার করুন</h3>
                 <p className="text-sm text-green-300">এবং আয় করুন +৳{currentUser.referrals.earnings.toFixed(2)} পর্যন্ত!</p>
             </div>
-            <UserGroupIcon className="w-10 h-10 text-secondary"/>
+            <GiftIcon className="w-10 h-10 text-secondary"/>
        </div>
 
       <EarningsChart/>
@@ -199,17 +188,21 @@ const Dashboard: React.FC<DashboardProps> = ({ ads, onAdComplete, setView }) => 
         <p className="text-textSecondary text-sm">প্রতিটি কাজ সম্পূর্ণ করলে রিওয়ার্ড পাবেন।</p>
       </div>
 
+      {allAdsWatched && timeLeft && <CooldownTimer timeLeft={timeLeft} />}
+      
+      {!allAdsWatched && (
       <div className="space-y-4">
         {ads.slice(0, visibleAdsCount).map((ad, index) => {
           const isProcessing = processingAds.includes(ad.id);
+          const isWatched = watchedAdIds.includes(ad.id);
           return (
             <div 
               key={ad.id} 
-              className="bg-surface p-4 rounded-xl shadow-3d flex items-center space-x-4 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-3d-hover animate-fadeIn"
+              className={`bg-surface p-4 rounded-xl shadow-3d flex items-center space-x-4 transition-all duration-300 ${isWatched ? 'opacity-60' : 'transform hover:-translate-y-1 hover:shadow-3d-hover'} animate-fadeIn`}
               style={{animationDelay: `${600 + (index % 10) * 50}ms`}}
-          >
+            >
               <div className="bg-primary/20 p-3 rounded-full">
-                  {ad.type === 'video' ? <PlayCircleIcon className="w-8 h-8 text-primary"/> : <GlobeAltIcon className="w-8 h-8 text-primary"/>}
+                  <CursorArrowRaysIcon className="w-8 h-8 text-primary"/>
               </div>
               <div className="flex-grow">
                 <h3 className="font-bold text-textPrimary">{ad.title}</h3>
@@ -223,16 +216,26 @@ const Dashboard: React.FC<DashboardProps> = ({ ads, onAdComplete, setView }) => 
               </div>
               <button 
                   onClick={() => handleAdClick(ad)}
-                  disabled={isProcessing}
-                  className={`font-semibold py-2 px-4 rounded-lg shadow-md transition-all transform ${isProcessing ? 'bg-slate-500 text-white cursor-not-allowed' : 'bg-secondary text-white hover:bg-green-500 hover:scale-105 active:scale-95'}`}
+                  disabled={isProcessing || isWatched}
+                  className={`font-semibold py-2 px-4 rounded-lg shadow-md transition-all flex items-center justify-center space-x-2 w-32 ${
+                      isProcessing ? 'bg-slate-500 text-white cursor-not-allowed' :
+                      isWatched ? 'bg-slate-600 text-textSecondary cursor-not-allowed' :
+                      'bg-secondary text-white hover:bg-green-500 hover:scale-105 active:scale-95'}`}
               >
-                  {isProcessing ? 'প্রসেসিং...' : 'দেখুন'}
+                  {isWatched ? (
+                      <>
+                        <CheckBadgeIcon className="w-5 h-5" />
+                        <span>দেখা হয়েছে</span>
+                      </>
+                    ) : isProcessing ? 'প্রসেসিং...' : 'দেখুন'
+                  }
               </button>
             </div>
           )
         })}
       </div>
-      {visibleAdsCount < ads.length && (
+      )}
+      {!allAdsWatched && visibleAdsCount < ads.length && (
         <div className="mt-6 text-center">
             <button
                 onClick={() => setVisibleAdsCount(prev => Math.min(prev + 10, ads.length))}

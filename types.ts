@@ -13,7 +13,7 @@ export interface User {
   balance: number;
   lastLogin: string;
   loginStreak: number;
-  totalAdsWatched: number;
+  totalSitesVisited: number;
   joinedDate: string;
   missionEarnings: number;
   lastMissionReset: string;
@@ -25,6 +25,10 @@ export interface User {
   missions: Mission[];
   isBlocked?: boolean;
   referredBy?: string;
+  watchedAdIdsToday?: string[];
+  adCooldownEndTime?: string;
+  fcmTokens?: string[];
+  notificationsEnabled?: boolean;
 }
 
 export interface Ad {

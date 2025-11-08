@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useCallback, useMemo } from 
 import { User, Ad, Transaction, View, Mission } from './types';
 import { auth, db } from './firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, doc, getDoc, updateDoc, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, updateDoc, addDoc, getDocs, query, orderBy, deleteField } from 'firebase/firestore';
 
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
@@ -18,7 +18,9 @@ import BottomNav from './components/BottomNav';
 import AdminPanel from './components/AdminPanel';
 import Auth from './components/Auth';
 import LoadingSpinner from './components/LoadingSpinner';
-import { PlayIcon, FacebookIcon, YoutubeIcon, TwitterIcon } from './components/IconComponents';
+import NotificationHandler from './components/NotificationHandler';
+import Toast from './components/Toast';
+import { CursorArrowRaysIcon, FacebookIcon, YoutubeIcon, TwitterIcon } from './components/IconComponents';
 
 const isSameDay = (d1: Date, d2: Date) => {
     return d1.getFullYear() === d2.getFullYear() &&
@@ -33,10 +35,10 @@ const isYesterday = (d1: Date, d2: Date) => {
 }
 
 export const initialGlobalMissions: Mission[] = [
-    { id: 'm1', type: 'watch', category: 'daily', title: 'Daily Starter', description: 'আজ 5টি ভিডিও দেখুন', reward: 5, goal: 5, progress: 0, completed: false },
-    { id: 'm2', type: 'watch', category: 'daily', title: 'Welcome Bonus', description: 'আপনার প্রথম ভিডিওটি দেখুন', reward: 10, goal: 1, progress: 0, completed: false },
-    { id: 's1', type: 'social', category: 'social', title: 'Follow on Facebook', description: 'আমাদের ফেসবুক পেজ ফলো করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: FacebookIcon, link: 'https://facebook.com' },
-    { id: 's2', type: 'social', category: 'social', title: 'Subscribe to YouTube', description: 'আমাদের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: YoutubeIcon, link: 'https://youtube.com' },
+    { id: 'm1', type: 'watch', category: 'daily', title: 'Daily Starter', description: 'আজ 5টি ওয়েবসাইট ভিজিট করুন', reward: 5, goal: 5, progress: 0, completed: false },
+    { id: 'm2', type: 'watch', category: 'daily', title: 'Welcome Bonus', description: 'আপনার প্রথম ওয়েবসাইটটি ভিজিট করুন', reward: 10, goal: 1, progress: 0, completed: false },
+    { id: 's1', type: 'social', category: 'social', title: 'Follow on Facebook', description: 'আমাদের ফেসবুক পেজ ফলো করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: FacebookIcon, link: 'https://www.facebook.com/profile.php?id=61583489671081' },
+    { id: 's2', type: 'social', category: 'social', title: 'Subscribe to YouTube', description: 'আমাদের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন', reward: 15, goal: 1, progress: 0, completed: false, icon: YoutubeIcon, link: 'https://youtube.com/@clickmint_93?si=9n8g82KWq6HhxsM0' },
     { id: 's3', type: 'social', category: 'social', title: 'Follow on X', description: 'X (Twitter) এ আমাদের ফলো করুন', reward: 10, goal: 1, progress: 0, completed: false, icon: TwitterIcon, link: 'https://x.com' },
 ];
 
@@ -45,7 +47,7 @@ export const UserContext = createContext<{
     loading: boolean;
     setView: (view: View) => Promise<void>;
     logout: () => Promise<void>;
-    updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
+    updateUser: (userId: string, updates: Partial<User> | { [key: string]: any }) => Promise<void>;
     addTransaction: (transactionData: Omit<Transaction, 'id' | 'date'>) => Promise<void>;
     updateBalance: (userId: string, amount: number, type: Transaction['type'], description: string) => Promise<void>;
     updateMissionProgress: (userId: string, missionId: string, progressToAdd: number) => Promise<void>;
@@ -61,25 +63,24 @@ export const UserContext = createContext<{
 } | null>(null);
 
 const adsData: Ad[] = Array.from({ length: 15 }, (_, i) => {
-    const isVideo = i % 2 === 0; // Mix of video and site ads
     return {
         id: `ad${i + 1}`,
-        type: isVideo ? 'video' : 'site',
+        type: 'site',
         brand: `Brand ${String.fromCharCode(65 + (i % 10))}${Math.floor(i/10) + 1}`,
-        title: isVideo ? `Product Demo #${i + 1}` : `Visit Website #${i + 1}`,
+        title: `ভিজিট ওয়েবসাইট #${i + 1}`,
         reward: parseFloat((1.00 + Math.random()).toFixed(2)), // 1.00 to 2.00
         duration: 25 + Math.floor(Math.random() * 26), // 25 to 50 seconds
-        url: isVideo ? 'placeholder' : 'https://google.com',
+        url: 'https://www.effectivegatecpm.com/m8r9c08qev?key=4d9177439fc72ffbc9b80fce4396e674',
     };
 });
 
 const SplashScreen: React.FC = () => (
     <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-premium-light to-premium-dark text-white">
         <div className="animate-float">
-            <PlayIcon className="w-24 h-24 mb-4 text-white" />
+            <CursorArrowRaysIcon className="w-24 h-24 mb-4 text-white" />
         </div>
-        <h1 className="text-4xl font-bold">WatchEarn</h1>
-        <p className="mt-2 text-lg">দেখুন, রোজ আয় করুন!</p>
+        <h1 className="text-4xl font-bold">ClickMint</h1>
+        <p className="mt-2 text-lg">ভিজিট করুন, আয় করুন!</p>
     </div>
 );
 
@@ -89,21 +90,11 @@ const App: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [bonusInfo, setBonusInfo] = useState<{ amount: number; streak: number } | null>(null);
     const [showReferralBonus, setShowReferralBonus] = useState(false);
-    
+    const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
+
     // Admin state
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-
-    useEffect(() => {
-        // Capture referral ID from URL on initial load
-        const urlParams = new URLSearchParams(window.location.search);
-        const referrerId = urlParams.get('ref');
-        if (referrerId) {
-            sessionStorage.setItem('referrerId', referrerId);
-            // Clean the URL to prevent re-using the same link
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    }, []);
 
     const fetchUser = useCallback(async (uid: string) => {
         const userDocRef = doc(db, 'users', uid);
@@ -150,13 +141,19 @@ const App: React.FC = () => {
         setView('onboarding');
     };
 
-    const updateUser = useCallback(async (userId: string, updates: Partial<User>) => {
+    const updateUser = useCallback(async (userId: string, updates: Partial<User> | { [key: string]: any }) => {
         const userDocRef = doc(db, 'users', userId);
-        await updateDoc(userDocRef, updates);
-        if (userId === currentUser?.id) {
-            setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+        
+        const finalUpdates = { ...updates };
+        if ('adCooldownEndTime' in finalUpdates && !finalUpdates.adCooldownEndTime) {
+            finalUpdates.adCooldownEndTime = deleteField() as any;
         }
-    }, [currentUser?.id]);
+
+        await updateDoc(userDocRef, finalUpdates);
+        if (userId === currentUser?.id) {
+           fetchUser(userId); // Refetch to get the fresh data
+        }
+    }, [currentUser?.id, fetchUser]);
     
     const addTransaction = useCallback(async (transactionData: Omit<Transaction, 'id' | 'date'>) => {
         const newTransaction = {
@@ -174,7 +171,7 @@ const App: React.FC = () => {
         const user = userDoc.data() as User;
         const newBalance = parseFloat((user.balance + amount).toFixed(2));
         
-        await updateUser(userId, { balance: newBalance });
+        await updateDoc(userRef, { balance: newBalance });
 
         await addTransaction({
             userId,
@@ -184,7 +181,7 @@ const App: React.FC = () => {
             status: 'completed',
             description,
         });
-    }, [updateUser, addTransaction]);
+    }, [addTransaction]);
 
     const updateMissionProgress = useCallback(async (userId: string, missionId: string, progressToAdd: number) => {
         const userRef = doc(db, 'users', userId);
@@ -198,8 +195,8 @@ const App: React.FC = () => {
             }
             return mission;
         });
-        await updateUser(userId, { missions: newMissions });
-    }, [updateUser]);
+        await updateDoc(userRef, { missions: newMissions });
+    }, []);
 
     const completeMission = useCallback(async (userId: string, missionId: string) => {
         const userRef = doc(db, 'users', userId);
@@ -227,15 +224,22 @@ const App: React.FC = () => {
                     const bonusAmount = 2.5 + (newStreak * 0.5);
                     
                     await updateBalance(currentUser.id, bonusAmount, 'daily-bonus', `Daily Bonus - Day ${newStreak}`);
-                    await updateUser(currentUser.id, { loginStreak: newStreak, lastLogin: today.toISOString() });
-
+                    await updateDoc(doc(db, 'users', currentUser.id), { loginStreak: newStreak, lastLogin: today.toISOString() });
+                    
                     setTimeout(() => setBonusInfo({ amount: bonusAmount, streak: newStreak }), 500);
                 }
 
                 const lastResetDate = new Date(currentUser.lastMissionReset);
                 if (!isSameDay(today, lastResetDate)) {
                     const missionsToReset = currentUser.missions.map(m => m.category === 'daily' ? {...m, progress: 0, completed: false } : m);
-                    await updateUser(currentUser.id, { lastMissionReset: today.toISOString(), missions: missionsToReset });
+                    await updateDoc(doc(db, 'users', currentUser.id), { lastMissionReset: today.toISOString(), missions: missionsToReset });
+                }
+
+                if (currentUser.adCooldownEndTime && new Date(currentUser.adCooldownEndTime) < new Date()) {
+                    await updateUser(currentUser.id, {
+                        adCooldownEndTime: '',
+                        watchedAdIdsToday: []
+                    });
                 }
             }
         };
@@ -252,7 +256,21 @@ const App: React.FC = () => {
         if (!userDoc.exists()) return;
         const user = userDoc.data() as User;
 
-        await updateUser(currentUser.id, { totalAdsWatched: user.totalAdsWatched + 1 });
+        await updateDoc(userRef, { totalSitesVisited: user.totalSitesVisited + 1 });
+
+        const currentWatchedIds = user.watchedAdIdsToday || [];
+        const newWatchedAdIds = [...currentWatchedIds, ad.id];
+        
+        const updates: Partial<User> = {
+            watchedAdIdsToday: newWatchedAdIds,
+        };
+        
+        if (newWatchedAdIds.length === adsData.length) {
+            updates.adCooldownEndTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        }
+
+        await updateUser(currentUser.id, updates);
+
 
         user.missions.forEach(mission => {
             if (mission.type === 'watch' && !mission.completed) {
@@ -303,6 +321,9 @@ const App: React.FC = () => {
         await fetchAllTransactions(); // Refresh
     };
     
+    const showToast = (title: string, body: string) => {
+        setToast({ title, body });
+    };
 
     const contextValue = useMemo(() => ({
         currentUser,
@@ -362,6 +383,8 @@ const App: React.FC = () => {
     return (
         <UserContext.Provider value={contextValue}>
             <div className="max-w-md mx-auto min-h-screen bg-background font-sans flex flex-col">
+                 {currentUser && <NotificationHandler showToast={showToast} />}
+                 {toast && <Toast title={toast.title} body={toast.body} onClose={() => setToast(null)} />}
                  {bonusInfo && <DailyBonusModal bonus={bonusInfo.amount} streak={bonusInfo.streak} onClose={() => setBonusInfo(null)} />}
                  {showReferralBonus && <ReferralBonusModal onClose={() => setShowReferralBonus(false)} />}
                 <main className="flex-grow pb-24">
